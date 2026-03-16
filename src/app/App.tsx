@@ -7,7 +7,7 @@ import { FacialTrackingLogs } from './components/FacialTrackingLogs';
 import { AIHealthAssistant } from './components/AIHealthAssistant';
 import { VisualSignalsDialog } from './components/VisualSignalsDialog';
 import { PhysiologicalSignalsDialog } from './components/PhysiologicalSignalsDialog';
-import { SleepActivityDialog } from './components/SleepActivityDialog';
+import { SleepActivityDialog, type SleepScoreUpdate } from './components/SleepActivityDialog';
 import { CardiovascularDialog } from './components/CardiovascularDialog';
 
 interface VisualReadings {
@@ -128,10 +128,57 @@ export default function App() {
     );
   };
 
+  const updateSleepActivityScore = ({
+    predictedScore,
+    confidence,
+    reading,
+  }: SleepScoreUpdate) => {
+    setModules((prev) =>
+      prev.map((module) => {
+        if (module.id !== 'sleep') return module;
+
+        if (!module.enabled) {
+          return {
+            ...module,
+            subtitle: 'Tracking paused',
+            trend: 'stable',
+          };
+        }
+
+        const boundedTarget = Math.max(20, Math.min(100, Math.round(predictedScore)));
+        const nextScore = boundedTarget;
+        const nextTrend: 'up' | 'down' | 'stable' =
+          nextScore > module.score ? 'up' : nextScore < module.score ? 'down' : 'stable';
+
+        const subtitle = `HR ${reading.heartRateBpm} bpm · ${reading.timeAsleepHours.toFixed(1)}h asleep · ${reading.movementsPerHour.toFixed(0)} mov/hr · Conf ${Math.round(confidence * 100)}%`;
+
+        return {
+          ...module,
+          score: nextScore,
+          subtitle,
+          trend: nextTrend,
+        };
+      })
+    );
+  };
+
   const toggleModule = (id: string) => {
     setModules((prev) =>
       prev.map((module) =>
         module.id === id ? { ...module, enabled: !module.enabled } : module
+      )
+    );
+  };
+
+  const connectSleepWearable = () => {
+    setModules((prev) =>
+      prev.map((module) =>
+        module.id === 'sleep'
+          ? {
+              ...module,
+              subtitle: 'Wearable connected (mock)',
+            }
+          : module
       )
     );
   };
@@ -163,6 +210,8 @@ export default function App() {
                 subtitle={module.subtitle}
                 isEnabled={module.enabled}
                 onToggle={() => toggleModule(module.id)}
+                topActionLabel={module.id === 'sleep' ? 'Connect to Wearable' : undefined}
+                onTopActionClick={module.id === 'sleep' ? connectSleepWearable : undefined}
                 onViewDetails={() => setOpenDialog(module.id)}
                 trend={module.trend}
                 accentColor={module.accentColor}
@@ -202,7 +251,9 @@ export default function App() {
         open={openDialog === 'sleep'}
         onOpenChange={(open) => !open && setOpenDialog(null)}
         isEnabled={getModule('sleep').enabled}
+        currentScore={getModule('sleep').score}
         onToggle={() => toggleModule('sleep')}
+        onScoreUpdate={updateSleepActivityScore}
       />
 
       <CardiovascularDialog

@@ -270,6 +270,11 @@ interface ModuleDialogBaseProps {
   children: React.ReactNode;
   footerActions: FooterAction[];
   privacyNote?: string;
+  headerAction?: {
+    label: string;
+    onClick?: () => void;
+    disabled?: boolean;
+  };
 }
 
 export function ModuleDialogBase({
@@ -284,6 +289,7 @@ export function ModuleDialogBase({
   children,
   footerActions,
   privacyNote = "All health data is processed locally on your device and never transmitted without your explicit consent.",
+  headerAction,
 }: ModuleDialogBaseProps) {
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
@@ -317,6 +323,17 @@ export function ModuleDialogBase({
 
               {/* Right: badge + toggle */}
               <div className="flex items-center gap-3">
+                {headerAction ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={headerAction.onClick}
+                    disabled={headerAction.disabled}
+                    className="h-7 border-white/30 bg-white/10 px-2.5 text-[11px] text-white hover:bg-white/25 hover:text-white"
+                  >
+                    {headerAction.label}
+                  </Button>
+                ) : null}
                 <Badge
                   className={
                     isEnabled
