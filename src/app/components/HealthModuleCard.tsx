@@ -11,6 +11,8 @@ interface HealthModuleCardProps {
   subtitle: string;
   isEnabled: boolean;
   onToggle: () => void;
+  topActionLabel?: string;
+  onTopActionClick?: () => void;
   onViewDetails?: () => void;
   trend?: 'up' | 'down' | 'stable';
   accentColor: string;
@@ -23,6 +25,8 @@ export function HealthModuleCard({
   subtitle,
   isEnabled,
   onToggle,
+  topActionLabel,
+  onTopActionClick,
   onViewDetails,
   trend = 'stable',
   accentColor,
@@ -49,7 +53,19 @@ export function HealthModuleCard({
           >
             <Icon className="h-6 w-6 text-white" />
           </div>
-          <Switch checked={isEnabled} onCheckedChange={onToggle} />
+          <div className="flex items-center gap-2">
+            {topActionLabel ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 px-2.5 text-[11px] text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700"
+                onClick={onTopActionClick}
+              >
+                {topActionLabel}
+              </Button>
+            ) : null}
+            <Switch checked={isEnabled} onCheckedChange={onToggle} />
+          </div>
         </div>
 
         {/* Title */}
