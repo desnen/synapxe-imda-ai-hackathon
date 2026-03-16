@@ -24,6 +24,7 @@ export function VisualSignalsDialog({
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [isModelsLoaded, setIsModelsLoaded] = useState(false);
+  const [isVideoReady, setIsVideoReady] = useState(false);
   const [dominantEmotion, setDominantEmotion] = useState<{ emotion: string; score: number } | null>(null);
   const [stressLevel, setStressLevel] = useState<number>(0);
   const loopRef = useRef<number | undefined>(undefined);
@@ -59,6 +60,7 @@ export function VisualSignalsDialog({
         videoRef.current.srcObject = stream;
       }
       streamRef.current = stream;
+      setIsVideoReady(true);
     } catch (err) {
       console.error("Failed to map webcam stream:", err);
     }
@@ -73,11 +75,15 @@ export function VisualSignalsDialog({
       cancelAnimationFrame(loopRef.current);
       loopRef.current = undefined;
     }
+    setIsVideoReady(false);
     setDominantEmotion(null);
     setStressLevel(0);
   };
 
   const handleVideoPlay = () => {
+    let lastFaceSeen = Date.now();
+    let lastStateUpdate = 0;
+    
     const detect = async () => {
       if (!videoRef.current || videoRef.current.paused || videoRef.current.ended) return;
 
@@ -85,15 +91,27 @@ export function VisualSignalsDialog({
         .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions())
         .withFaceExpressions();
 
+      const now = Date.now();
+      
       if (results) {
-        const expressions = results.expressions;
-        const sorted = Object.entries(expressions).sort((a, b) => b[1] - a[1]);
-        if (sorted.length > 0) {
-          setDominantEmotion({ emotion: sorted[0][0], score: sorted[0][1] });
+        lastFaceSeen = now;
+        
+        // Only update UI states every 5 seconds
+        if (now - lastStateUpdate > 5000) {
+          const expressions = results.expressions;
+          const sorted = Object.entries(expressions).sort((a, b) => b[1] - a[1]);
+          if (sorted.length > 0) {
+            setDominantEmotion({ emotion: sorted[0][0], score: sorted[0][1] });
+          }
+          setStressLevel(calculateStress(expressions));
+          lastStateUpdate = now;
         }
-        setStressLevel(calculateStress(expressions));
       } else {
-        setDominantEmotion(null);
+        // Clear data if we haven't seen a face for a long time (e.g. 5+ seconds)
+        if (now - lastFaceSeen > 5000) {
+          setDominantEmotion(null);
+          lastStateUpdate = 0; // Reset update timer
+        }
       }
 
       loopRef.current = requestAnimationFrame(detect);
@@ -155,7 +173,7 @@ export function VisualSignalsDialog({
               onPlay={handleVideoPlay}
               className="absolute inset-0 h-full w-full object-cover rounded-xl"
             />
-            {(!streamRef.current || !isModelsLoaded || !dominantEmotion) && (
+            {(!isVideoReady || !isModelsLoaded) && (
               <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-gray-900/80 backdrop-blur-sm gap-4">
                 {/* Pulsing ring */}
                 <div className="relative">
