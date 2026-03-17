@@ -148,7 +148,8 @@ export default function App() {
                     };
                 }
 
-                const nextScore = Math.max(20, Math.min(100, Math.round(predictedScore)));
+                const boundedTarget = Math.max(20, Math.min(100, Math.round(predictedScore)));
+                const nextScore = boundedTarget;
                 const nextTrend: 'up' | 'down' | 'stable' =
                     nextScore > module.score ? 'up' : nextScore < module.score ? 'down' : 'stable';
 
@@ -223,6 +224,7 @@ export default function App() {
                     <HealthScoreHero />
                 </div>
 
+                {/* Health Modules Grid */}
                 <div className="mb-8">
                     <h2 className="mb-4 text-lg font-semibold text-gray-900">Health Tracking Modules</h2>
                     <div className="grid gap-6 md:grid-cols-2">
@@ -245,6 +247,7 @@ export default function App() {
                     </div>
                 </div>
 
+                {/* Bottom Section: Facial Tracking & AI Assistant */}
                 <div className="grid gap-6 lg:grid-cols-3">
                     <div className="lg:col-span-2">
                         <FacialTrackingLogs />
@@ -255,6 +258,7 @@ export default function App() {
                 </div>
             </main>
 
+            {/* ── Module Detail Dialogs ───────────────────── */}
             <VisualSignalsDialog
                 open={openDialog === 'visual'}
                 onOpenChange={(open) => !open && setOpenDialog(null)}
