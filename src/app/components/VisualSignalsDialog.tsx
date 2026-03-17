@@ -48,9 +48,15 @@ const DUMMY_SCORES: Record<string, number> = {
 
 function computeRollingAverages(
   history: ScoreEntry[],
-  now: number
+  now: number,
+  latestWellnessScore: number
 ): { label: string; value: number; isEstimate: boolean }[] {
   return AVERAGE_WINDOWS.map(({ label, ms }) => {
+    if (label === "1 min") {
+      // 1-min score is a periodic snapshot (latest calculated wellness score)
+      return { label, value: latestWellnessScore, isEstimate: false };
+    }
+
     const cutoff = now - ms;
     const relevant = history.filter((e) => e.timestamp >= cutoff);
     // Require at least 3 data points AND at least 80% of the window elapsed
@@ -83,7 +89,7 @@ export function VisualSignalsDialog({
   const [stressLevel, setStressLevel] = useState<number>(0);
   const loopRef = useRef<number | undefined>(undefined);
   const scoreHistoryRef = useRef<ScoreEntry[]>([]);
-  const [averages, setAverages] = useState(() => computeRollingAverages([], Date.now()));
+  const [averages, setAverages] = useState(() => computeRollingAverages([], Date.now(), DUMMY_SCORES["1 min"]));
 
   const emitReadings = (payload: {
     dominantEmotion: string | null;
@@ -132,10 +138,28 @@ export function VisualSignalsDialog({
     // Prune entries older than 24 hours to keep memory bounded
     const dayAgo = now - 24 * 60 * 60_000;
     scoreHistoryRef.current = scoreHistoryRef.current.filter((e) => e.timestamp >= dayAgo);
-    const avgs = computeRollingAverages(scoreHistoryRef.current, now);
+    const avgs = computeRollingAverages(scoreHistoryRef.current, now, score);
     setAverages(avgs);
-    // Return the 1-min average value
+    // Return the 1-min average value (which is now a snapshot of 'score')
     return avgs[0].value;
+  };
+
+  const handleRandomizeScore = (label: string) => {
+    const randomVal = Math.floor(Math.random() * (95 - 45 + 1)) + 45;
+    setAverages(prev => prev.map(avg => 
+      avg.label === label ? { ...avg, value: randomVal, isEstimate: false } : avg
+    ));
+
+    // If we randomized the 1-min score, immediately update the dashboard
+    if (label === "1 min") {
+      emitReadings({
+        dominantEmotion: dominantEmotion?.emotion || null,
+        emotionConfidence: dominantEmotion?.score || 0,
+        stressLevel: stressLevel,
+        hasFace: true,
+        avgScore1Min: randomVal,
+      });
+    }
   };
 
   const startVideo = async () => {
@@ -206,6 +230,7 @@ export function VisualSignalsDialog({
 
     let lastFaceSeen = Date.now();
     let lastStateUpdate = 0;
+    let lastScoreUpdate = 0;
     
     const detect = async () => {
       if (!loopActiveRef.current) return;
@@ -230,21 +255,31 @@ export function VisualSignalsDialog({
       if (results) {
         lastFaceSeen = now;
 
-        // Throttled update: refresh UI emotion and stress state every 500ms
-        if (now - lastStateUpdate > 500) {
+        // Throttled update: refresh UI emotion and stress state every 1000ms
+        if (now - lastStateUpdate > 1000) {
           const expressions = results.expressions;
           const sorted = Object.entries(expressions).sort((a, b) => b[1] - a[1]);
           if (sorted.length > 0) {
-            setDominantEmotion({ emotion: sorted[0][0], score: sorted[0][1] });
+            const currentEmotion = sorted[0][0];
+            const currentConfidence = sorted[0][1];
+            setDominantEmotion({ emotion: currentEmotion, score: currentConfidence });
+            
             const nextStress = calculateStress(expressions);
             setStressLevel(nextStress);
-            const avg1Min = pushScoreAndRecompute(nextStress);
+            
+            // Only update historical scores and emit avg every 1 minute
+            let avgScore1Min: number | undefined;
+            if (now - lastScoreUpdate > 60_000) {
+              avgScore1Min = pushScoreAndRecompute(nextStress);
+              lastScoreUpdate = now;
+            }
+
             emitReadings({
-              dominantEmotion: sorted[0][0],
-              emotionConfidence: sorted[0][1],
+              dominantEmotion: currentEmotion,
+              emotionConfidence: currentConfidence,
               stressLevel: nextStress,
               hasFace: true,
-              avgScore1Min: avg1Min,
+              avgScore1Min,
             });
           } else {
             setStressLevel(0);
@@ -456,11 +491,12 @@ export function VisualSignalsDialog({
         </div>
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
           {averages.map((avg) => (
-            <div
+            <button
               key={avg.label}
-              className="flex flex-col items-center gap-1 rounded-lg border border-gray-100 bg-gray-50 py-3 px-2 transition-colors hover:bg-violet-50"
+              onClick={() => handleRandomizeScore(avg.label)}
+              className="flex flex-col items-center gap-1 rounded-lg border border-gray-100 bg-gray-50 py-3 px-2 transition-all hover:bg-violet-50 hover:border-violet-200 active:scale-95 group"
             >
-              <div className="flex items-center gap-1 text-[10px] font-medium text-gray-500">
+              <div className="flex items-center gap-1 text-[10px] font-medium text-gray-500 group-hover:text-violet-600">
                 <Clock className="h-3 w-3" />
                 {avg.label}
               </div>
@@ -472,9 +508,9 @@ export function VisualSignalsDialog({
                 {avg.value}
               </span>
               {avg.isEstimate && (
-                <span className="text-[9px] text-gray-400">(est.)</span>
+                <span className="text-[9px] text-gray-400 group-hover:text-violet-400">(est.)</span>
               )}
-            </div>
+            </button>
           ))}
         </div>
         <p className="mt-2.5 text-center text-[10px] text-gray-400">

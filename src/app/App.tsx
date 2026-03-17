@@ -105,28 +105,15 @@ export default function App() {
                     };
                 }
 
-                // Use the 1-min rolling average as the score when available,
-                // otherwise fall back to the instantaneous weighted formula.
-                let targetScore: number;
+                // Only update the main score and trend if we have a new 1-min average (throttled to 1 min)
+                let nextScore = module.score;
+                let nextTrend = module.trend;
+
                 if (avgScore1Min != null) {
-                    targetScore = Math.max(20, Math.min(100, avgScore1Min));
-                } else {
-                    const positive = new Set(['happy', 'surprised']);
-                    const neutral = new Set(['neutral']);
-
-                    let emotionPenalty = 14;
-                    if (positive.has(dominantEmotion)) emotionPenalty = 0;
-                    else if (neutral.has(dominantEmotion)) emotionPenalty = 7;
-
-                    targetScore = Math.max(
-                        20,
-                        Math.min(100, Math.round(100 - stressLevel * 0.6 - emotionPenalty))
-                    );
+                    const targetScore = Math.max(20, Math.min(100, avgScore1Min));
+                    nextScore = targetScore;
+                    nextTrend = nextScore > module.score ? 'up' : nextScore < module.score ? 'down' : 'stable';
                 }
-
-                const nextScore = Math.round(module.score * 0.72 + targetScore * 0.28);
-                const nextTrend: 'up' | 'down' | 'stable' =
-                    nextScore > module.score ? 'up' : nextScore < module.score ? 'down' : 'stable';
 
                 const subtitle = `${dominantEmotion[0].toUpperCase()}${dominantEmotion.slice(1)} · Stress ${stressLevel}% · Conf ${Math.round(emotionConfidence * 100)}%`;
 
