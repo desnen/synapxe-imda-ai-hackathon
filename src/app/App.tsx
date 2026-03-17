@@ -18,6 +18,7 @@ interface VisualReadings {
     emotionConfidence: number;
     stressLevel: number;
     hasFace: boolean;
+    avgScore1Min?: number;
 }
 
 interface HealthModule {
@@ -82,6 +83,7 @@ export default function App() {
         emotionConfidence,
         stressLevel,
         hasFace,
+        avgScore1Min,
     }: VisualReadings) => {
         setModules((prev) =>
             prev.map((module) => {
@@ -103,21 +105,15 @@ export default function App() {
                     };
                 }
 
-                const positive = new Set(['happy', 'surprised']);
-                const neutral = new Set(['neutral']);
+                // Only update the main score and trend if we have a new 1-min average (throttled to 1 min)
+                let nextScore = module.score;
+                let nextTrend = module.trend;
 
-                let emotionPenalty = 14;
-                if (positive.has(dominantEmotion)) emotionPenalty = 0;
-                else if (neutral.has(dominantEmotion)) emotionPenalty = 7;
-
-                const targetScore = Math.max(
-                    20,
-                    Math.min(100, Math.round(100 - stressLevel * 0.6 - emotionPenalty))
-                );
-
-                const nextScore = Math.round(module.score * 0.72 + targetScore * 0.28);
-                const nextTrend: 'up' | 'down' | 'stable' =
-                    nextScore > module.score ? 'up' : nextScore < module.score ? 'down' : 'stable';
+                if (avgScore1Min != null) {
+                    const targetScore = Math.max(20, Math.min(100, avgScore1Min));
+                    nextScore = targetScore;
+                    nextTrend = nextScore > module.score ? 'up' : nextScore < module.score ? 'down' : 'stable';
+                }
 
                 const subtitle = `${dominantEmotion[0].toUpperCase()}${dominantEmotion.slice(1)} · Stress ${stressLevel}% · Conf ${Math.round(emotionConfidence * 100)}%`;
 
