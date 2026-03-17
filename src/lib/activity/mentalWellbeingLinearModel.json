@@ -1,0 +1,162 @@
+{
+  "modelType": "linear_regression",
+  "scoreRange": {
+    "min": 0,
+    "max": 100
+  },
+  "featureNames": [
+    "observedHours",
+    "totalSteps",
+    "meanStepsPerSecond",
+    "activeSecondsFraction",
+    "standingFraction",
+    "sittingFraction",
+    "lyingFraction",
+    "offFraction",
+    "meanHr",
+    "stdHr",
+    "minHr",
+    "maxHr",
+    "meanVectorMagnitude",
+    "stdVectorMagnitude",
+    "axis1Std",
+    "axis2Std",
+    "axis3Std"
+  ],
+  "featureStats": [
+    {
+      "mean": 18.468156565656564,
+      "std": 0.8229960806222091
+    },
+    {
+      "mean": 12244.954545454546,
+      "std": 3033.549967781113
+    },
+    {
+      "mean": 0.1845100375812197,
+      "std": 0.04627006027353818
+    },
+    {
+      "mean": 0.16478278407499045,
+      "std": 0.03873249557421454
+    },
+    {
+      "mean": 0.3309507598871149,
+      "std": 0.05549299108384211
+    },
+    {
+      "mean": 0.3079802263313902,
+      "std": 0.042832199451237535
+    },
+    {
+      "mean": 0.13895243684730463,
+      "std": 0.03052506144270118
+    },
+    {
+      "mean": 0.22211657693419032,
+      "std": 0.06177829243875979
+    },
+    {
+      "mean": 75.4279986961293,
+      "std": 6.17539235360784
+    },
+    {
+      "mean": 15.85445698055039,
+      "std": 4.598019719366647
+    },
+    {
+      "mean": 23.318181818181817,
+      "std": 17.290003322036497
+    },
+    {
+      "mean": 206.5909090909091,
+      "std": 31.374075996403448
+    },
+    {
+      "mean": 34.687126450237145,
+      "std": 6.963805040293128
+    },
+    {
+      "mean": 66.752108240683,
+      "std": 9.385793907322947
+    },
+    {
+      "mean": 37.17535431064057,
+      "std": 5.467574616773239
+    },
+    {
+      "mean": 40.61259404664616,
+      "std": 8.765927115917037
+    },
+    {
+      "mean": 40.86856676825991,
+      "std": 4.555508087246261
+    }
+  ],
+  "intercept": 62.79724336965718,
+  "weights": [
+    -1.949919341558377,
+    2.871109755852399,
+    3.091046743690158,
+    -1.4474688592967455,
+    0.33303539130097404,
+    0.0971946040996976,
+    -2.0062857138688446,
+    0.624779424864613,
+    -0.6197094315781351,
+    2.947708327078937,
+    -0.40204801239715704,
+    -1.6845084569180229,
+    -3.6237916407616444,
+    -0.8378505751609064,
+    2.523465239130031,
+    -3.79233605940591,
+    1.4817354251465458
+  ],
+  "targetDefinition": {
+    "name": "mental_wellbeing_score_0_100",
+    "type": "derived_proxy_from_mmash_questionnaires",
+    "components": {
+      "averagePanasPositive": {
+        "range": [
+          5,
+          50
+        ],
+        "direction": "higher_better",
+        "weight": 0.45
+      },
+      "averagePanasNegative": {
+        "range": [
+          5,
+          50
+        ],
+        "direction": "lower_better",
+        "weight": 0.25
+      },
+      "stai1": {
+        "range": [
+          20,
+          80
+        ],
+        "direction": "lower_better",
+        "weight": 0.2
+      },
+      "dailyStress": {
+        "range": [
+          0,
+          406
+        ],
+        "direction": "lower_better",
+        "weight": 0.1
+      }
+    }
+  },
+  "metrics": {
+    "trainRmse": 3.1878,
+    "trainMae": 2.6762,
+    "trainR2": 0.6904,
+    "looRmse": 7.9217,
+    "looMae": 6.4686,
+    "looR2": -0.912
+  }
+}
