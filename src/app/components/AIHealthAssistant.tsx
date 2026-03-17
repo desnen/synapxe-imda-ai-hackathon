@@ -90,23 +90,23 @@ export function AIHealthAssistant({ healthContext }: AIHealthAssistantProps) {
   };
 
   return (
-    <Card className="overflow-hidden border-2 border-cyan-200 bg-gradient-to-br from-sky-50 to-cyan-50">
+    <Card className="overflow-hidden border border-slate-200 bg-white shadow-sm">
       <div className="p-6">
         <div className="mb-4 flex items-start justify-between">
           <div className="flex items-center gap-3">
             <div>
               <h3 className="text-lg font-semibold text-gray-900">AI Health Assistant</h3>
               <div className="mt-1 flex items-center gap-2">
-                <Badge className="bg-cyan-100 text-cyan-700 hover:bg-cyan-100">Online</Badge>
+                <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100">Online</Badge>
                 <span className="text-xs font-medium text-slate-600">Model: SEA-LION</span>
               </div>
             </div>
           </div>
-          <MessageCircle className="h-5 w-5 text-cyan-500" />
+          <MessageCircle className="h-5 w-5 text-slate-500" />
         </div>
 
         <div className="mb-4 flex flex-wrap items-center gap-2 text-xs text-gray-600">
-          <Badge className="bg-white text-cyan-700 hover:bg-white">
+          <Badge className="border border-slate-200 bg-white text-slate-700 hover:bg-white">
             Enabled modules: {enabledCount}/{healthContext.modules.length}
           </Badge>
           <span>Cooldown: {Math.round(MIN_REQUEST_INTERVAL_MS / 1000)}s</span>
@@ -119,13 +119,13 @@ export function AIHealthAssistant({ healthContext }: AIHealthAssistantProps) {
           </Alert>
         )}
 
-        <div ref={viewportRef} className="mb-4 h-72 space-y-3 overflow-y-auto rounded-xl border border-cyan-200 bg-white p-3">
+        <div ref={viewportRef} className="mb-4 h-72 space-y-3 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-3">
             {messages.map((message) => (
               <div
                 key={message.id}
                 className={`max-w-[92%] rounded-xl px-3 py-2 text-sm leading-relaxed ${
                   message.role === 'assistant'
-                    ? 'mr-auto bg-cyan-50 text-gray-800'
+                    ? 'mr-auto bg-white text-gray-800 border border-slate-200'
                     : 'ml-auto bg-gradient-to-r from-indigo-600 to-cyan-600 text-white'
                 }`}
               >
@@ -133,7 +133,7 @@ export function AIHealthAssistant({ healthContext }: AIHealthAssistantProps) {
               </div>
             ))}
             {isLoading && (
-              <div className="mr-auto inline-flex items-center gap-2 rounded-xl bg-cyan-50 px-3 py-2 text-sm text-gray-700">
+              <div className="mr-auto inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-gray-700">
                 <LoaderCircle className="h-4 w-4 animate-spin" />
                 Generating response...
               </div>
@@ -159,7 +159,7 @@ export function AIHealthAssistant({ healthContext }: AIHealthAssistantProps) {
             <Button
               type="button"
               variant="outline"
-              className="border-cyan-200 bg-white"
+              className="border-slate-200 bg-white"
               onClick={resetConversation}
               disabled={isLoading}
             >

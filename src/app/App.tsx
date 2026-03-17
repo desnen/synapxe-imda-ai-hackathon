@@ -283,11 +283,11 @@ export default function App() {
                 </div>
 
                 {/* Bottom Section: Facial Tracking & AI Assistant */}
-                <div className="grid gap-6 lg:grid-cols-3">
+                <div className="grid gap-6 lg:grid-cols-5">
                     <div className="lg:col-span-2">
                         <FacialTrackingLogs />
                     </div>
-                    <div className="lg:col-span-1">
+                    <div className="lg:col-span-3">
                         <AIHealthAssistant healthContext={assistantContext} />
                     </div>
                 </div>
