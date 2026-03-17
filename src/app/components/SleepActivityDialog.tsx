@@ -25,8 +25,8 @@ import {
   loadSleepTrainingRows,
   type SleepReading,
   type SleepTrainingRow,
-} from "../../lib/sleepData";
-import { getSleepQualityModel } from "../../lib/sleepQualityModel";
+} from "../../lib/sleep/sleepData";
+import { getSleepQualityModel } from "../../lib/sleep/sleepQualityModel";
 
 interface SleepActivityDialogProps {
   open: boolean;
